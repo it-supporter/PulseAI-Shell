@@ -1,0 +1,81 @@
+{
+  "$schema": "https://raw.githubusercontent.com/JanDeDobbeleer/oh-my-posh/main/themes/schema.json",
+  "palette": {
+    "base": "#ACB0BE",
+    "pink": "#F5BDE6",
+    "lavender": "#B7BDF8",
+    "blue": "#8AADF4",
+    "text": "#494D64",
+    "error": "#E64553"
+  },
+  "blocks": [
+    {
+      "type": "prompt",
+      "alignment": "left",
+      "segments": [
+
+        {
+          "type": "time",
+          "style": "diamond",
+          "background": "p:base",
+          "foreground": "p:text",
+          "leading_diamond": "\ue0b6",
+          "powerline_symbol": "\ue0b4",
+          "template": "  {{ .CurrentDate | date \"15:04:05\" }} "
+        },
+
+        {
+          "type": "status",
+          "style": "plain",
+          "foreground": "p:error",
+          "template": "  ",
+          "properties": {
+            "always_enabled": false
+          }
+        },
+
+        {
+          "type": "session",
+          "style": "diamond",
+          "background": "p:blue",
+          "foreground": "p:text",
+          "powerline_symbol": "\ue0b4",
+          "template": "  {{ .UserName }} "
+        },
+
+        {
+          "type": "path",
+          "style": "powerline",
+          "background": "p:pink",
+          "foreground": "p:text",
+          "powerline_symbol": "\ue0b4",
+          "template": " {{ .Path }} ",
+          "properties": {
+            "style": "agnoster_short"
+          }
+        },
+
+        {
+          "type": "git",
+          "style": "powerline",
+          "powerline_symbol": "\ue0b4",
+          "template": " {{ .HEAD }} ",
+          "foreground": "p:text",
+          "background_templates": [
+            "{{ if eq .HEAD \"dev\" }}#A6E3A1{{ end }}",
+            "{{ if eq .HEAD \"main\" }}#F38BA8{{ end }}"
+          ],
+          "background": "p:lavender",
+          "properties": {
+            "fetch_status": false,
+            "fetch_upstream_icon": false,
+            "branch_icon": ""
+          }
+        }
+
+      ]
+    }
+  ],
+  "final_space": true,
+  "version": 4
+}
