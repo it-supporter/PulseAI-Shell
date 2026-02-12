@@ -1,0 +1,51 @@
+name: Auto Version Bump
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Bump version
+        shell: pwsh
+        run: |
+          $ConfigPath = "config/pulseai-shell.config.json"
+          $Config = Get-Content $ConfigPath | ConvertFrom-Json
+
+          $VersionParts = $Config.Version.Split(".")
+          $Major = [int]$VersionParts[0]
+          $Minor = [int]$VersionParts[1]
+          $Patch = [int]$VersionParts[2]
+
+          $Patch++
+
+          $NewVersion = "$Major.$Minor.$Patch"
+          $Config.Version = $NewVersion
+          $Config.LastUpdated = (Get-Date -Format "yyyy-MM-dd")
+
+          $Config | ConvertTo-Json -Depth 3 | Set-Content $ConfigPath -Encoding UTF8
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add config/pulseai-shell.config.json
+          git commit -m "Auto bump version"
+          git push
+
+      - name: Create tag
+        shell: bash
+        run: |
+          VERSION=$(jq -r .Version config/pulseai-shell.config.json)
+          git tag v$VERSION
+          git push origin v$VERSION
