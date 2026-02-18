@@ -7,30 +7,43 @@
       "type": "prompt",
       "alignment": "left",
       "segments": [
-
         {
           "type": "text",
           "style": "plain",
           "foreground": "#888888",
-          "template": " {{ env \"PULSE_MACHINE_ICON\" }} "
+          "template": "{{ env \"PULSE_MACHINE_ICON\" }} "
         },
-
         {
-          "type": "path",
-          "style": "plain",
-          "foreground": "#ffffff",
-          "properties": {
-            "style": "agnoster_short"
-          }
-        },
-
+  "type": "path",
+  "style": "plain",
+  "foreground": "#ffffff",
+  "properties": {
+    "style": "full",
+    "home_symbol": "",
+    "disable_home_icon": true,
+    "disable_home_shortening": true
+  }
+}
+,
         {
           "type": "text",
           "style": "plain",
-          "foreground": "#00ff5f",
-          "template": " ❯"
+          "foreground": "#D8B4FE",
+          "template": " >"
         }
-
+      ]
+    },
+    {
+      "type": "rprompt",
+      "segments": [
+        {
+          "type": "time",
+          "style": "plain",
+          "foreground": "#D8B4FE",
+          "properties": {
+            "time_format": "15:04   02-01/2006"
+          }
+        }
       ]
     }
   ]
