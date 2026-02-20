@@ -11,3 +11,5 @@ Desktop.ini
 
 # macOS junk
 .DS_Store
+
+.pulseai_lastfetch
