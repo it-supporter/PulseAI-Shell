@@ -1,10 +1,16 @@
 function Initialize-PulseAIShell {
+<#
+.SYNOPSIS
+Initializes the PulseAI shell environment.
+#>
 
-    # Apply default theme
-    Set-PulseDevTheme
+    [CmdletBinding()]
+    param()
 
-    # UX Aliases
-    Set-Alias devmode Set-PulseDevTheme -Scope Global
-    Set-Alias chill   Set-PulseCasualTheme -Scope Global
-    Set-Alias repo Set-PulseRepo -Scope Global
+    # Apply default theme quietly
+    Set-PulseDevTheme -Silent
+
+    # NOTE:
+    # Interactive aliases are owned by PulseAI-Environment.
+    # Shell must not redefine them.
 }
