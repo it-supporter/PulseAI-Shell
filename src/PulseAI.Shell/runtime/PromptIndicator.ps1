@@ -19,8 +19,15 @@ Returns the highest PulseSeverity currently active.
         return $null
     }
 
-    $signals = Get-PulseSignals
-    if (-not $signals) {
+    # --- Normalize signals (CRITICAL) ---
+    $rawSignals = Get-PulseSignals -ErrorAction SilentlyContinue
+    $signals = @()
+
+    if ($null -ne $rawSignals) {
+        $signals = @($rawSignals)
+    }
+
+    if ($signals.Count -eq 0) {
         return $null
     }
 
@@ -85,35 +92,20 @@ Return a compact prompt indicator based on active Pulse signals.
 
     switch ($severity.ToString()) {
 
-        'Critical' {
-            return $useIcons ? '⛔ ' : '!! '
-        }
+        'Critical'      { return $useIcons ? '⛔ ' : '!! ' }
+        'Error'         { return $useIcons ? ' ' : '!! ' }
+        'Warning'       { return $useIcons ? ' ' : '! ' }
+        'Advisory'      { return $useIcons ? '⚠ ' : '~ ' }
+        'Informational' { return $useIcons ? 'ℹ ' : 'i ' }
 
-        'Error' {
-            return $useIcons ? ' ' : '!! '
-        }
-
-        'Warning' {
-            return $useIcons ? ' ' : '! '
-        }
-
-        'Advisory' {
-            return $useIcons ? '⚠ ' : '~ '
-        }
-
-        'Informational' {
-            return $useIcons ? 'ℹ ' : 'i '
-        }
-
-        default {
-            return ''
-        }
+        default { return '' }
     }
 }
 
 # ---------------------------------
 # Project Pulse signals to environment (oh-my-posh bridge)
 # ---------------------------------
+
 function Update-PulseSignalEnvironment {
 <#
 .SYNOPSIS
@@ -132,18 +124,25 @@ Project active Pulse signals into environment variables for prompt rendering.
         return
     }
 
-    $signals = Get-PulseSignals
+    # --- Normalize signals (CRITICAL) ---
+    $rawSignals = Get-PulseSignals -ErrorAction SilentlyContinue
+    $signals = @()
 
-    if (-not $signals -or $signals.Count -eq 0) {
+    if ($null -ne $rawSignals) {
+        $signals = @($rawSignals)
+    }
+
+    if ($signals.Count -eq 0) {
         return
     }
 
     # Severity ranking contract
     $rank = @{
         Critical      = 4
-        Warning       = 3
-        Advisory      = 2
-        Informational = 1
+        Error         = 3
+        Warning       = 2
+        Advisory      = 1
+        Informational = 0
     }
 
     $top = $signals |
@@ -151,8 +150,9 @@ Project active Pulse signals into environment variables for prompt rendering.
         Select-Object -First 1
 
     # Map severity → icon
-    $icon = switch ($top.Severity) {
+    $icon = switch ($top.Severity.ToString()) {
         'Critical'      { '⛔' }
+        'Error'         { '' }
         'Warning'       { '' }
         'Advisory'      { '⚠' }
         'Informational' { 'ℹ' }

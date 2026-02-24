@@ -7,28 +7,30 @@
       "type": "prompt",
       "alignment": "left",
       "segments": [
-
+        {
+          "type": "text",
+          "style": "plain",
+          "foreground": "#ffaa00",
+          "template": "{{ if env \"PULSE_SIGNAL_ICON\" }}{{ env \"PULSE_SIGNAL_ICON\" }} {{ end }}"
+        },
         {
           "type": "time",
           "style": "plain",
           "foreground": "#888888",
           "template": "  {{ .CurrentDate | date \"15:04:05\" }} "
         },
-
         {
           "type": "text",
           "style": "plain",
           "foreground": "#00afff",
           "template": " {{ env \"PULSE_MACHINE_ICON\" }} {{ env \"PULSE_MACHINE_NAME\" }} "
         },
-
         {
           "type": "session",
           "style": "plain",
           "foreground": "#ffaf00",
           "template": "{{ if env \"SSH_CONNECTION\" }} {{ .UserName }}@{{ .HostName }} {{ end }}"
         },
-
         {
           "type": "git",
           "style": "powerline",
@@ -36,7 +38,6 @@
           "background": "transparent",
           "template": " {{ .HEAD }}{{ if .Working.Changed }} ✏{{ end }}{{ if gt .Ahead 0 }} ↑{{ .Ahead }}{{ end }}{{ if gt .Behind 0 }} ↓{{ .Behind }}{{ end }} ",
           "foreground_templates": [
-
             "{{ if and (not .Working.Changed) (eq .Ahead 0) (eq .Behind 0) }}#666666{{ end }}",
 
             "{{ if and (eq .HEAD \"main\") (.Working.Changed) }}#ff2a2a{{ end }}",
@@ -57,7 +58,6 @@
             "branch_icon": ""
           }
         },
-
         {
           "type": "path",
           "style": "plain",
@@ -66,7 +66,6 @@
             "style": "agnoster_short"
           }
         },
-
         {
           "type": "text",
           "style": "plain",
@@ -76,14 +75,12 @@
           ],
           "template": "{{ if gt (atoi (env \"PULSE_LOAD_MS\")) 150 }} {{ env \"PULSE_LOAD_MS\" }}ms{{ end }}"
         },
-
         {
           "type": "text",
           "style": "plain",
           "foreground": "#00ff5f",
           "template": " ❯"
         }
-
       ]
     }
   ]

@@ -54,9 +54,6 @@ if (-not (Get-Variable -Name PulseTheme -Scope Global -ErrorAction SilentlyConti
 . (Join-Path $PSScriptRoot 'runtime\PromptIndicator.ps1')
 . (Join-Path $PSScriptRoot 'runtime\Shell.ps1')
 
-# --- Debug (safe but useful) ---
-Write-Host "[DEBUG] PSScriptRoot = $PSScriptRoot"
-Write-Host "[DEBUG] PromptIndicator exists = $(Test-Path (Join-Path $PSScriptRoot 'runtime\PromptIndicator.ps1'))"
 
 # ---------------------------------
 # Load Private Functions

@@ -10,6 +10,12 @@
         {
           "type": "text",
           "style": "plain",
+          "foreground": "#ffaa00",
+          "template": "{{ if env \"PULSE_SIGNAL_ICON\" }}{{ env \"PULSE_SIGNAL_ICON\" }} {{ end }}"
+        },
+        {
+          "type": "text",
+          "style": "plain",
           "foreground": "#888888",
           "template": "{{ env \"PULSE_MACHINE_ICON\" }} "
         },

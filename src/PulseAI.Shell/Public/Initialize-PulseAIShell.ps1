@@ -64,7 +64,7 @@ Initialize the PulseAI shell runtime and prompt integration.
     }
 
     # ---------------------------------
-    # CRITICAL: Warm OMP runtime ONCE
+    # Warm OMP runtime ONCE
     # ---------------------------------
 
     Write-Verbose "[PulseAI.Shell] Warming oh-my-posh runtime."
@@ -78,14 +78,17 @@ Initialize the PulseAI shell runtime and prompt integration.
     }
 
     # ---------------------------------
-    # Force console width stabilization
-    # (fixes first-render rprompt overflow)
+    # Console geometry stabilization
     # ---------------------------------
 
     try {
         $raw = $Host.UI.RawUI
+
+        $win = $raw.WindowSize
         $buf = $raw.BufferSize
+
         $raw.BufferSize = $buf
+        $raw.WindowSize = $win
     }
     catch {
         Write-Verbose "[PulseAI.Shell] Console stabilization skipped: $_"
@@ -100,7 +103,7 @@ Initialize the PulseAI shell runtime and prompt integration.
     }
 
     # ---------------------------------
-    # Cache prompt helpers (HOT PATH)
+    # Cache signal bridge helper
     # ---------------------------------
 
     $script:PulseUpdateSignalCmd =
@@ -108,44 +111,26 @@ Initialize the PulseAI shell runtime and prompt integration.
             -Module PulseAI.Shell `
             -ErrorAction SilentlyContinue
 
-    $script:PulseIndicatorCmd =
-        Get-Command Get-PulsePromptIndicator `
-            -Module PulseAI.Shell `
-            -ErrorAction SilentlyContinue
-
     # ---------------------------------
-    # Install Pulse prompt wrapper
+    # Install minimal Pulse prompt shim
     # ---------------------------------
 
-    Write-Verbose "[PulseAI.Shell] Installing Pulse prompt wrapper."
+    Write-Verbose "[PulseAI.Shell] Installing Pulse prompt shim."
 
     function global:prompt {
 
-        # --- Refresh signal environment ---
+        # Refresh Pulse → ENV bridge
         if ($script:PulseUpdateSignalCmd) {
             try { & $script:PulseUpdateSignalCmd } catch {}
         }
 
-        # --- Resolve indicator (pure string) ---
-        $indicator = ''
-
-        if ($script:PulseIndicatorCmd) {
-            try { $indicator = & $script:PulseIndicatorCmd } catch {}
+        # Let OMP render the prompt
+        try {
+            return (oh-my-posh print primary --config $env:POSH_THEME)
         }
-
-        # --- Deterministic OMP render ---
-        if ($env:POSH_THEME -and (Test-Path $env:POSH_THEME)) {
-            try {
-                $posh = oh-my-posh print primary --config $env:POSH_THEME
-                return "$indicator$posh"
-            }
-            catch {
-                Write-Verbose "[PulseAI.Shell] OMP render failed: $_"
-            }
+        catch {
+            return "PS $($executionContext.SessionState.Path.CurrentLocation)> "
         }
-
-        # --- Hard fallback ---
-        return "$indicator" + "PS $($executionContext.SessionState.Path.CurrentLocation)> "
     }
 
     # ---------------------------------
@@ -154,3 +139,4 @@ Initialize the PulseAI shell runtime and prompt integration.
 
     $script:PulseShellInitialized = $true
 }
+
