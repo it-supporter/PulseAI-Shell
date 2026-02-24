@@ -1,5 +1,5 @@
 function Set-PulseDevTheme {
-<#
+    <#
 .SYNOPSIS
 Activates the PulseAI developer theme.
 #>
@@ -31,11 +31,11 @@ Activates the PulseAI developer theme.
         $Global:PulseTheme = @{}
     }
 
-    $Global:PulseTheme.Name    = 'Dev'
-    $Global:PulseTheme.Accent  = 'Cyan'
+    $Global:PulseTheme.Name = 'Dev'
+    $Global:PulseTheme.Accent = 'Cyan'
     $Global:PulseTheme.Success = 'Green'
     $Global:PulseTheme.Warning = 'Yellow'
-    $Global:PulseTheme.Error   = 'Red'
+    $Global:PulseTheme.Error = 'Red'
 
     # ---------------------------------
     # UX confirmation (ONLY HERE)

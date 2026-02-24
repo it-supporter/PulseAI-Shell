@@ -1,5 +1,5 @@
 function Set-PulseCasualTheme {
-<#
+    <#
 .SYNOPSIS
 Activates the PulseAI casual theme.
 #>
@@ -31,11 +31,11 @@ Activates the PulseAI casual theme.
         $Global:PulseTheme = @{}
     }
 
-    $Global:PulseTheme.Name    = 'Casual'
-    $Global:PulseTheme.Accent  = 'DarkCyan'
+    $Global:PulseTheme.Name = 'Casual'
+    $Global:PulseTheme.Accent = 'DarkCyan'
     $Global:PulseTheme.Success = 'Green'
     $Global:PulseTheme.Warning = 'Yellow'
-    $Global:PulseTheme.Error   = 'Red'
+    $Global:PulseTheme.Error = 'Red'
 
     # ---------------------------------
     # UX confirmation (ONLY HERE)

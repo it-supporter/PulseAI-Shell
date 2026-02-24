@@ -1,7 +1,7 @@
 @{
 
 RootModule        = 'PulseAI.Shell.psm1'
-ModuleVersion     = '0.2.1'
+ModuleVersion     = '0.3.0'
 CompatiblePSEditions = @('Core')
 
 GUID              = '6b6d3b45-3c7e-4c7b-8f5d-1c6c9e0d7a11'

@@ -20,27 +20,32 @@ function Set-PulseTheme {
     }
 
     # ---------------------------------
-    # Detect no-op switch
+    # Normalize paths
     # ---------------------------------
-    if ($script:PulseActiveTheme -and
-        (Resolve-Path $script:PulseActiveTheme).Path -eq (Resolve-Path $ThemePath).Path) {
 
+    $resolvedTarget = (Resolve-Path $ThemePath -ErrorAction SilentlyContinue)?.Path
+    $resolvedActive = if ($script:PulseActiveTheme) {
+        (Resolve-Path $script:PulseActiveTheme -ErrorAction SilentlyContinue)?.Path
+    }
+
+    # ---------------------------------
+    # Detect no-op
+    # ---------------------------------
+
+    if ($resolvedActive -and $resolvedTarget -and $resolvedActive -eq $resolvedTarget) {
         Write-Verbose "[PulseAI] Theme already active."
         return
     }
 
     # ---------------------------------
-    # Apply theme
+    # AUTHORITATIVE STATE UPDATE
     # ---------------------------------
-    $ompInit = oh-my-posh init pwsh --config $ThemePath
-    Invoke-Expression $ompInit
 
-    $script:PulseActiveTheme = $ThemePath
+    # 🔴 CRITICAL: do NOT run oh-my-posh init here
+    # Your wrapper renders statelessly.
 
-    # ---------------------------------
-    # Operator feedback
-    # ---------------------------------
-    $themeName = [System.IO.Path]::GetFileNameWithoutExtension($ThemePath) `
-        -replace '^pulseai-', '' `
-        -replace '\.omp$', ''
+    $env:POSH_THEME = $resolvedTarget
+    $script:PulseActiveTheme = $resolvedTarget
+
+    Write-Verbose "[PulseAI] Theme environment updated."
 }

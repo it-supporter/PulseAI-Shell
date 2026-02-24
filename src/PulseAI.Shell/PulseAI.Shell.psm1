@@ -2,27 +2,42 @@
 # PulseAI.Shell Module Entry
 # =================================
 
+Set-StrictMode -Version Latest
+
 # ---------------------------------
-# Module-Level State
+# Module-Level State (MUST be first)
 # ---------------------------------
 
-# Inside a module, $PSScriptRoot already equals:
+# Inside a module, $PSScriptRoot equals:
 # ...\src\PulseAI.Shell
 $script:ShellRoot = $PSScriptRoot
 
-# Paths resolved relative to module root; validated at theme activation time
-$script:DevThemePath    = Join-Path $script:ShellRoot "..\..\themes\pulseai-dev.omp.json"
-$script:CasualThemePath = Join-Path $script:ShellRoot "..\..\themes\pulseai-casual.omp.json"
+# --- Theme paths (normalized & deterministic) ---
+# --- Theme paths (normalized & canonical) ---
+$script:DevThemePath = Join-Path $script:ShellRoot '..\..\themes\pulseai-dev.omp.json'
+$script:CasualThemePath = Join-Path $script:ShellRoot '..\..\themes\pulseai-casual.omp.json'
+
+# Canonicalize if possible (defensive hardening)
+try {
+    if (Test-Path $script:DevThemePath) {
+        $script:DevThemePath = (Resolve-Path $script:DevThemePath).Path
+    }
+
+    if (Test-Path $script:CasualThemePath) {
+        $script:CasualThemePath = (Resolve-Path $script:CasualThemePath).Path
+    }
+}
+catch {
+    Write-Verbose "[PulseAI.Shell] Theme path normalization failed: $_"
+}
 
 $script:PulseActiveTheme = $null
 
 # ---------------------------------
 # PulseAI Visual Theme Contract (bootstrap safety)
 # ---------------------------------
-# Ensures the visual contract exists. Theme functions
-# are responsible for authoritative values.
 
-if (-not ($Global:PulseTheme -is [hashtable])) {
+if (-not (Get-Variable -Name PulseTheme -Scope Global -ErrorAction SilentlyContinue)) {
     $Global:PulseTheme = @{
         Name    = 'Bootstrap'
         Accent  = 'Cyan'
@@ -31,6 +46,17 @@ if (-not ($Global:PulseTheme -is [hashtable])) {
         Error   = 'Red'
     }
 }
+
+# ---------------------------------
+# Load runtime primitives (AFTER state)
+# ---------------------------------
+
+. (Join-Path $PSScriptRoot 'runtime\PromptIndicator.ps1')
+. (Join-Path $PSScriptRoot 'runtime\Shell.ps1')
+
+# --- Debug (safe but useful) ---
+Write-Host "[DEBUG] PSScriptRoot = $PSScriptRoot"
+Write-Host "[DEBUG] PromptIndicator exists = $(Test-Path (Join-Path $PSScriptRoot 'runtime\PromptIndicator.ps1'))"
 
 # ---------------------------------
 # Load Private Functions
@@ -59,8 +85,6 @@ if (Test-Path $publicPath) {
 # ---------------------------------
 # Ergonomic Wrapper Surface
 # ---------------------------------
-# These provide stable human-friendly verbs while the canonical
-# implementation remains the Set-Pulse* functions.
 
 function Use-DevTheme {
     [CmdletBinding()]
@@ -86,4 +110,19 @@ Export-ModuleMember -Function `
     Set-PulseCasualTheme,
     Set-PulseRepo,
     Use-DevTheme,
-    Use-CasualTheme
+    Use-CasualTheme,
+    Get-PulsePromptIndicator,
+    Update-PulseSignalEnvironment
+
+# ---------------------------------
+# Automatic shell bootstrap (safe)
+# ---------------------------------
+
+try {
+    if (Get-Command Initialize-PulseAIShell -ErrorAction SilentlyContinue) {
+        Initialize-PulseAIShell
+    }
+}
+catch {
+    Write-Verbose "[PulseAI.Shell] Automatic initialization failed: $_"
+}

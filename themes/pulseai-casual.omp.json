@@ -14,17 +14,16 @@
           "template": "{{ env \"PULSE_MACHINE_ICON\" }} "
         },
         {
-  "type": "path",
-  "style": "plain",
-  "foreground": "#ffffff",
-  "properties": {
-    "style": "full",
-    "home_symbol": "",
-    "disable_home_icon": true,
-    "disable_home_shortening": true
-  }
-}
-,
+          "type": "path",
+          "style": "plain",
+          "foreground": "#ffffff",
+          "properties": {
+            "style": "full",
+            "home_symbol": "",
+            "disable_home_icon": true,
+            "disable_home_shortening": true
+          }
+        },
         {
           "type": "text",
           "style": "plain",
@@ -35,13 +34,14 @@
     },
     {
       "type": "rprompt",
+      "overflow": "hidden",
       "segments": [
         {
           "type": "time",
           "style": "plain",
           "foreground": "#D8B4FE",
           "properties": {
-            "time_format": "15:04   02-01/2006"
+            "time_format": "15:04 02-01"
           }
         }
       ]
