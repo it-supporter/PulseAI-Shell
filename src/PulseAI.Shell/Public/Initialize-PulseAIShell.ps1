@@ -1,9 +1,12 @@
+# ---------------------------------
+# Module initialization guard
+# ---------------------------------
+
+if (-not (Test-Path variable:script:PulseShellInitialized)) {
+    $script:PulseShellInitialized = $false
+}
+
 function Initialize-PulseAIShell {
-<#
-.SYNOPSIS
-Initialize the PulseAI shell runtime and prompt integration.
-.PULSE Tier Common
-#>
 
     [CmdletBinding()]
     param(
@@ -12,131 +15,55 @@ Initialize the PulseAI shell runtime and prompt integration.
 
     Set-StrictMode -Version Latest
 
-    # ---------------------------------
-    # Idempotent guard
-    # ---------------------------------
-
-    if (-not (Get-Variable PulseShellInitialized -Scope Script -ErrorAction SilentlyContinue)) {
-        $script:PulseShellInitialized = $false
-    }
-
     if ($script:PulseShellInitialized -and -not $Force) {
         return
     }
 
-    # ---------------------------------
-    # Verify oh-my-posh availability
-    # ---------------------------------
-
     $omp = Get-Command oh-my-posh -ErrorAction SilentlyContinue
-    if (-not $omp) {
-        Write-Verbose "[PulseAI.Shell] oh-my-posh not found."
+    if (-not $omp) { return }
+
+    # ---------------------------------
+    # THEME RESOLUTION (single source of truth)
+    # ---------------------------------
+
+    if (Get-Command Set-PulseDevTheme -ErrorAction SilentlyContinue) {
+        # Silent during shell bootstrap
+        Set-PulseDevTheme -Silent
+    }
+
+    if (-not $env:POSH_THEME -or -not (Test-Path $env:POSH_THEME)) {
+        Write-Verbose "[PulseAI.Shell] No valid theme."
         return
     }
 
     # ---------------------------------
-    # Ensure default theme exists
-    # ---------------------------------
-
-    $themePath = $script:DevThemePath
-    if (-not (Test-Path $themePath)) {
-        Write-Verbose "[PulseAI.Shell] Theme not found: $themePath"
-        return
-    }
-
-    # ---------------------------------
-    # Enforce UTF-8 console encoding (hard lock)
+    # INIT OMP WITH THEME (locked)
     # ---------------------------------
 
     try {
-        $utf8 = [System.Text.UTF8Encoding]::new($false)
-
-        [Console]::InputEncoding  = $utf8
-        [Console]::OutputEncoding = $utf8
-        $global:OutputEncoding    = $utf8
-
-        if ($IsWindows) {
-            cmd /c chcp 65001 > $null 2>&1
-        }
-    }
-    catch {
-        Write-Verbose "[PulseAI.Shell] UTF-8 enforcement failed: $_"
-    }
-
-    # ---------------------------------
-    # Warm OMP runtime ONCE
-    # ---------------------------------
-
-    Write-Verbose "[PulseAI.Shell] Warming oh-my-posh runtime."
-
-    try {
-        $ompInit = oh-my-posh init pwsh --print
-        Invoke-Expression $ompInit
+        Invoke-Expression (
+            & oh-my-posh init pwsh `
+                --config $env:POSH_THEME `
+                --print |
+            Out-String
+        )
     }
     catch {
         Write-Verbose "[PulseAI.Shell] OMP init failed: $_"
+        return
     }
 
     # ---------------------------------
-    # Console geometry stabilization
+    # Pulse data bridge (no prompt ownership)
     # ---------------------------------
 
-    try {
-        $raw = $Host.UI.RawUI
-
-        $win = $raw.WindowSize
-        $buf = $raw.BufferSize
-
-        $raw.BufferSize = $buf
-        $raw.WindowSize = $win
-    }
-    catch {
-        Write-Verbose "[PulseAI.Shell] Console stabilization skipped: $_"
+    if (Get-Command Initialize-PulsePromptIndicator -ErrorAction SilentlyContinue) {
+        Initialize-PulsePromptIndicator
     }
 
-    # ---------------------------------
-    # Ensure theme env is set
-    # ---------------------------------
-
-    if (-not $env:POSH_THEME) {
-        $env:POSH_THEME = $themePath
+    if (Get-Command Update-PulseSignalEnvironment -ErrorAction SilentlyContinue) {
+        Update-PulseSignalEnvironment
     }
-
-    # ---------------------------------
-    # Cache signal bridge helper
-    # ---------------------------------
-
-    $script:PulseUpdateSignalCmd =
-        Get-Command Update-PulseSignalEnvironment `
-            -Module PulseAI.Shell `
-            -ErrorAction SilentlyContinue
-
-    # ---------------------------------
-    # Install minimal Pulse prompt shim
-    # ---------------------------------
-
-    Write-Verbose "[PulseAI.Shell] Installing Pulse prompt shim."
-
-    function global:prompt {
-
-        # Refresh Pulse → ENV bridge
-        if ($script:PulseUpdateSignalCmd) {
-            try { & $script:PulseUpdateSignalCmd } catch {}
-        }
-
-        # Let OMP render the prompt
-        try {
-            return (oh-my-posh print primary --config $env:POSH_THEME)
-        }
-        catch {
-            return "PS $($executionContext.SessionState.Path.CurrentLocation)> "
-        }
-    }
-
-    # ---------------------------------
-    # Mark initialized
-    # ---------------------------------
 
     $script:PulseShellInitialized = $true
 }
-

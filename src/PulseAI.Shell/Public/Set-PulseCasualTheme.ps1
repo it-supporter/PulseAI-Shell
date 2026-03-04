@@ -1,45 +1,59 @@
 function Set-PulseCasualTheme {
-    <#
-.SYNOPSIS
-Activates the PulseAI casual theme.
-#>
 
     [CmdletBinding()]
     param(
         [switch]$Silent
     )
 
-    # ---------------------------------
-    # Resolve theme path
-    # ---------------------------------
-    $resolved = Resolve-Path -Path $script:CasualThemePath -ErrorAction SilentlyContinue
+    Set-StrictMode -Version Latest
 
-    if (-not $resolved) {
-        Write-Verbose "[PulseAI.Shell] Casual theme path not found."
+    if ($script:PulseActiveTheme -eq 'casual') {
         return
     }
 
-    # ---------------------------------
-    # Apply prompt theme (engine — silent)
-    # ---------------------------------
-    Set-PulseTheme -ThemePath $resolved.Path
+    if (-not $script:CasualThemePath) { return }
 
-    # ---------------------------------
-    # Update visual contract (mutate)
-    # ---------------------------------
+    $resolved = Resolve-Path $script:CasualThemePath -ErrorAction SilentlyContinue
+    if (-not $resolved) { return }
+
+    $themePath = $resolved.Path
+
+    $omp = Get-Command oh-my-posh -ErrorAction SilentlyContinue
+    if (-not $omp) { return }
+
+    Set-PulseTheme -ThemePath $themePath
+    $env:POSH_THEME = $themePath
+
+    try {
+
+        $ompInit = & oh-my-posh init pwsh `
+            --config $themePath `
+            --print |
+            Out-String
+
+        if (-not $ompInit) {
+            throw "OMP init returned empty"
+        }
+
+        Invoke-Expression $ompInit
+    }
+    catch {
+        Write-Warning "[PulseAI.Shell] Failed to initialize oh-my-posh."
+        return
+    }
+
     if (-not ($Global:PulseTheme -is [hashtable])) {
         $Global:PulseTheme = @{}
     }
 
-    $Global:PulseTheme.Name = 'Casual'
-    $Global:PulseTheme.Accent = 'DarkCyan'
+    $Global:PulseTheme.Name    = 'Casual'
+    $Global:PulseTheme.Accent  = 'Magenta'
     $Global:PulseTheme.Success = 'Green'
     $Global:PulseTheme.Warning = 'Yellow'
-    $Global:PulseTheme.Error = 'Red'
+    $Global:PulseTheme.Error   = 'Red'
 
-    # ---------------------------------
-    # UX confirmation (ONLY HERE)
-    # ---------------------------------
+    $script:PulseActiveTheme = 'casual'
+
     if (-not $Silent) {
         Write-Host "Theme switched → casual" -ForegroundColor $Global:PulseTheme.Accent
     }
